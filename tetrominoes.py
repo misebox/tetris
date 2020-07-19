@@ -160,30 +160,35 @@ class Mino:
                     return True
         return False
 
-    def rotate_left(self, reverse=False):
-        self.erase()
+    def _rotate(self, reverse=False):
+        w = len(self.shape[0])
+        h = len(self.shape)
+        new_shape = [[' '] * h for _ in range(w)]
+        for y in range(h):
+            for x in range(w):
+                if self.shape[y][x] == '#':
+                    if reverse:
+                        ny = x
+                        nx = h - y - 1
+                    else:
+                        ny = w - x -1
+                        nx = y
+                    new_shape[ny][nx] = '#'
+        self.shape = new_shape
+        # theta = math.pi/2
+        # math.floor(math.cos(theta) * x - math.sin(theta) * y)
+        # math.floor(math.sin(theta) * x + math.cos(theta) * y)
+    def rotate_left(self):
         with self.lock:
-            w = len(self.shape[0])
-            h = len(self.shape)
-            new_shape = [[' '] * h for _ in range(w)]
-            for y in range(h):
-                for x in range(w):
-                    if self.shape[y][x] == '#':
-                        if reverse:
-                            ny = x
-                            nx = h - y - 1
-                        else:
-                            ny = w - x -1
-                            nx = y
-                        new_shape[ny][nx] = '#'
-            self.shape = new_shape
-            # theta = math.pi/2
-            # math.floor(math.cos(theta) * x - math.sin(theta) * y)
-            # math.floor(math.sin(theta) * x + math.cos(theta) * y)
-        self.draw()
+            self._rotate()
+            if is_conflicted(field, mino):
+                self._rotate(reverse=True)
 
     def rotate_right(self):
-        self.rotate_left(reverse=True)
+        with self.lock:
+            self._rotate(reverse=True)
+            if is_conflicted(field, mino):
+                self._rotate()
     
     def drop(self):
         while self.down():
@@ -204,7 +209,7 @@ class Mino:
                         cv.create_rectangle(
                             px * size, py * size,
                             (px+1) * size -1, (py+1) * size -1,
-                            fill='blue', tag=f'mino')
+                            fill='blue', tag='mino')
     
     def erase(self):
         cv.delete('mino')
@@ -247,7 +252,7 @@ class Field:
                 cv.create_rectangle(
                     x * size, y * size,
                     (x+1) * size -1, (y+1) * size -1,
-                    fill='gray', tag=f'field')
+                    fill='gray', tag='field')
 
     def clear_line(self):
         targets = []
@@ -277,13 +282,13 @@ def display():
     if game_state == GameState.STANDBY:
         cv.create_text(win_width/2, win_height/2, fill='blue', text='TETROMINOES', font="Tetris 50 ", tag="newgame")
     elif game_state == GameState.PLAYING:
-        field.erase()
         mino.erase()
+        field.erase()
         field.draw()
         mino.draw()
     elif game_state == GameState.GAMEOVER:
-        field.erase()
         mino.erase()
+        field.erase()
         field.draw()
         mino.draw()
         cv.create_text(win_width/2, win_height/2, fill='red', text='GAMEOVER!', font="Tetris 50 ", tag="gameover")
