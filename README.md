@@ -24,3 +24,8 @@ $ python tetrominoes.py
 |R, e, k|ROTATE RIGHT|
 |r, E, K|ROTATE LEFT|
 |SPACE, ENTER|START GAME / DROP|
+
+
+## SCREEN SHOT
+
+![Screenshot1](https://github.com/misebox/tetrominoes/blob/images/ss01.png)
