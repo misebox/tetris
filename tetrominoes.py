@@ -192,9 +192,13 @@ class Mino:
     
     def drop(self):
         while self.down():
-            pass
-        self.change_state(MinoState.LANDED)
-        self.progress = 0
+            self.erase()
+            self.draw()
+            cv.update()
+            time.sleep(0.0017)
+        with self.lock:
+            self.change_state(MinoState.LANDED)
+            self.progress = 0
 
     def draw(self):
         if not self.state.is_shown():
@@ -202,14 +206,14 @@ class Mino:
         with self.lock:
             progress = 0 if self.state is MinoState.LANDING else self.progress
             cx, cy = self.x, self.y
-            for y, line in enumerate(mino.shape):
-                for x, cell in enumerate(line):
-                    if cell == "#":
-                        px, py = cx + x, cy + y + progress
-                        cv.create_rectangle(
-                            px * size, py * size,
-                            (px+1) * size -1, (py+1) * size -1,
-                            fill='blue', tag='mino')
+        for y, line in enumerate(mino.shape):
+            for x, cell in enumerate(line):
+                if cell == "#":
+                    px, py = cx + x, cy + y + progress
+                    cv.create_rectangle(
+                        px * size, py * size,
+                        (px+1) * size -1, (py+1) * size -1,
+                        outline='midnightblue', fill='royalblue', tag='mino')
     
     def erase(self):
         cv.delete('mino')
@@ -236,6 +240,8 @@ class Field:
                 px, py = mx + x, my + y
                 self.shape[py][px] = '#'
         # self.text_display()
+        self.draw()
+        cv.update()
 
     def text_display(self):
         screen = copy.deepcopy(field.shape)
@@ -252,18 +258,31 @@ class Field:
                 cv.create_rectangle(
                     x * size, y * size,
                     (x+1) * size -1, (y+1) * size -1,
-                    fill='gray', tag='field')
+                    outline='dimgray', fill='gray', tag='field')
 
     def clear_line(self):
         targets = []
-        cnt = 0
         for y in range(len(self.shape) - 2, -1, -1):
             line = self.shape[y]
             if all(map(lambda x: x == '#', line[1:-1])):
                 self.shape.pop(y)
-                cnt += 1
-        for i in range(cnt):
+                targets.append(y)
+        if not targets:
+            return
+        for i in range(-255, 256, 2):
+            cv.delete('effect')
+            color = '#' + f'{math.floor(255-(i/16)**2):02x}'*3
+            for y in targets:
+                cv.create_rectangle(
+                    size, y * size,
+                    (width-1) * size-1, (y+1) * size -1,
+                    outline=color, fill=color, tag='effect')
+            cv.pack()
+            cv.update()
+            time.sleep(0.0001)
+        for _ in targets:
             self.shape.insert(0, self.new_line())
+        cv.delete('effect')
 
 def is_conflicted(field, mino, dx = 0, dy = 0):
     mx, my = mino.x + dx, mino.y + dy
@@ -293,6 +312,7 @@ def display():
         mino.draw()
         cv.create_text(win_width/2, win_height/2, fill='red', text='GAMEOVER!', font="Tetris 50 ", tag="gameover")
         time.sleep(0.1)
+    cv.update()
 
 
 # Key Input
@@ -369,7 +389,7 @@ def start():
 
 # initialize
 width = 12
-height = 18
+height = 21
 size = 40
 fps = 60
 win_width = width * size
