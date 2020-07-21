@@ -59,7 +59,7 @@ class MinoState(IntEnum):
     LANDED = 4
 
     def check_next(self, next_state):
-        return self < next_state or (self == MinoState.LANDED) and (next_state == MinoState.STANDBY)
+        return self <= next_state or (self == MinoState.LANDED) and (next_state == MinoState.STANDBY)
 
     def is_shown(self):
         return self in (MinoState.STANDBY, MinoState.FALLING, MinoState.LANDING)
