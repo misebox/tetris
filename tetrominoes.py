@@ -60,7 +60,7 @@ class MinoState(IntEnum):
 
     def check_next(self, next_state):
         return self < next_state or (self == MinoState.LANDED) and (next_state == MinoState.STANDBY)
-        
+
     def is_shown(self):
         return self in (MinoState.STANDBY, MinoState.FALLING, MinoState.LANDING)
 
@@ -81,7 +81,7 @@ class Mino:
         msg = f'不正な状態遷移({self.state} -> {next_state})'
         assert self.state.check_next(next_state), msg
         self.state = next_state
-    
+
     def fall(self):
         def falling(lock):
             unit = 1.0 / size
@@ -388,18 +388,26 @@ def start():
 
 
 # initialize
+root = tk.Tk()
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
 width = 12
 height = 21
-size = 40
+# size = 40
+# fps = 60
+# win_width = width * size
+# win_height = height * size
 fps = 60
-win_width = width * size
-win_height = height * size
+win_height = math.floor(screen_height * 0.8)
+size = math.floor(win_height / height)
+win_width = size * width
 win_center_x = win_width/2
 tick = math.ceil(1000/fps)
 
-root = tk.Tk()
 root.title('Tetrominoes')
-root.geometry(f'{width*size}x{height*size}+1200+100')
+win_px = math.floor((screen_width+win_height)/2)
+win_py = math.floor((screen_height - win_height) / 2)
+root.geometry(f'{width*size}x{height*size}+{win_px}+{win_py}')
 cv = tk.Canvas(root, width=win_width, height=win_height)
 cv.pack()
 
